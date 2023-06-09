@@ -1,2 +1,2 @@
-#!bin/bash
-file_path="./hello"
+#!/bin/bash
+chmod u+x hello
