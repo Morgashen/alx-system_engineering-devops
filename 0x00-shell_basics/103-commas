@@ -1,2 +1,2 @@
 #!/bin/bash
-ls -p | LC_COLLATE=C sort -d --version-sort | awk 
+ls -amvp
