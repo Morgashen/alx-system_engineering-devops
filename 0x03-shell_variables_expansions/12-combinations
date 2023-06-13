@@ -1,0 +1,2 @@
+#!/bin/bash
+eval {a..z}{a..z} | grep -v oo
