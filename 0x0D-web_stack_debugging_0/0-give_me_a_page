@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# Script to run Apache web server in a container
+
+print_error_and_exit() {
+    echo "Error: $1" >&2
+    exit 1
+}
+
+if [ "$(id -u)" -ne 0 ]; then
+    print_error_and_exit "This script must be run as root."
+fi
+
+apt-get update || print_error_and_exit "Failed to update package lists."
+
+apt-get install -y apache2 || print_error_and_exit "Failed to install Apache."
+
+apache_conf="/etc/apache2/apache2.conf"
+if ! grep -q "ServerName localhost" "$apache_conf"; then
+    echo "ServerName localhost" >> "$apache_conf" || print_error_and_exit "Failed to update Apache configuration."
+fi
+
+systemctl start apache2 || print_error_and_exit "Failed to start Apache service."
+
+echo "Apache web server is running."
