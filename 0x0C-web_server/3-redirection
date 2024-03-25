@@ -1,59 +1,30 @@
 #!/usr/bin/env bash
+# Installs, configures, and starts the server
+apt-get update
+apt-get -y install nginx
+sudo ufw allow 'Nginx HTTP'
+mkdir -p /var/www/html/
+sudo chmod -R 755 /var/www
+echo 'Hello World!' > /var/www/html/index.html
+SERVER_CONFIG=\
+"server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+	root /var/www/html;
+	index index.html index.htm index.nginx-debian.html;
+	server_name _;
+	location / {
+		try_files \$uri \$uri/ =404;
+	}
+	if (\$request_filename ~ redirect_me){
+		rewrite ^ https://sketchfab.com/bluepeno/models permanent;
+	}
+}"
 
-# Script to install, configure, and start the Nginx server
+bash -c "echo -e '$SERVER_CONFIG' > /etc/nginx/sites-enabled/default"
 
-print_error_and_exit() {
-    echo "Error: $1" >&2
-    exit 1
-}
-
-if [ "$(id -u)" -ne 0 ]; then
-    print_error_and_exit "This script must be run as root."
-fi
-
-apt-get update || print_error_and_exit "Failed to update package lists."
-
-apt-get install -y nginx || print_error_and_exit "Failed to install Nginx."
-
-ufw_status=$(sudo ufw status | grep -o 'inactive' || true)
-if [ "$ufw_status" = "inactive" ]; then
-    print_error_and_exit "Uncomplicated Firewall (UFW) is inactive. Please enable it and try again."
-fi
-
-ufw allow 'Nginx HTTP' || print_error_and_exit "Failed to allow Nginx HTTP traffic through the firewall."
-
-document_root="/var/www/html"
-mkdir -p "$document_root"
-chmod -R 755 "$document_root" || print_error_and_exit "Failed to set permissions on the document root directory."
-
-echo 'Hello World!' > "$document_root/index.html" || print_error_and_exit "Failed to create the index file."
-
-server_config=$(cat <<'EOF'
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    root /var/www/html;
-    index index.html index.htm index.nginx-debian.html;
-    server_name _;
-
-    location / {
-        try_files $uri $uri/ =404;
-    }
-
-    if ($request_filename ~ redirect_me) {
-        rewrite ^ https://sketchfab.com/bluepeno/models permanent;
-    }
-}
-EOF
-)
-
-
-echo "$server_config" > /etc/nginx/sites-enabled/default || print_error_and_exit "Failed to write the Nginx server configuration."
-
-if ! pgrep -x "nginx" > /dev/null; then
-    systemctl start nginx || print_error_and_exit "Failed to start the Nginx service."
+if [ "$(pgrep -c nginx)" -le 0 ]; then
+	service nginx start
 else
-    systemctl restart nginx || print_error_and_exit "Failed to restart the Nginx service."
+	service nginx restart
 fi
-
-echo "Nginx has been installed, configured, and started successfully."

@@ -2,28 +2,37 @@
 
 # Script to install and configure Nginx on a remote server
 
-print_error_and_exit() {
-    echo "Error: $1" >&2
+if [ $# -lt 4 ]; then
+    echo "Usage: $0 PATH_TO_FILE IP USERNAME PATH_TO_SSH_KEY"
     exit 1
-}
-
-if [ "$(id -u)" -ne 0 ]; then
-    print_error_and_exit "This script must be run as root."
 fi
 
-apt-get update || print_error_and_exit "Failed to update package lists."
+file_path="$1"
+server_ip="$2"
+username="$3"
+ssh_key_path="$4"
 
-apt-get install -y nginx || print_error_and_exit "Failed to install Nginx."
+export SCP_OPTIONS="-o StrictHostKeyChecking=no"
 
-ufw_status=$(sudo ufw status | grep -o 'inactive' || true)
-if [ "$ufw_status" = "inactive" ]; then
-    print_error_and_exit "Uncomplicated Firewall (UFW) is inactive. Please enable it and try again."
+scp $SCP_OPTIONS -i "$ssh_key_path" "$file_path" "$username@$server_ip:~/"
+
+if [ $? -eq 0 ]; then
+    echo "File transferred successfully!"
+else
+    echo "Error transferring the file."
 fi
 
-ufw allow 'Nginx HTTP' || print_error_and_exit "Failed to allow Nginx HTTP traffic through the firewall."
+sudo apt update
+sudo apt install nginx
 
-echo 'Hello World!' > /var/www/html/index.nginx-debian.html || print_error_and_exit "Failed to create the index file."
+sudo sed -i 's/listen 80 default_server;/listen 80;/g' /etc/nginx/sites-available/default
 
-systemctl start nginx || print_error_and_exit "Failed to start the Nginx service."
 
-echo "Nginx has been installed and configured successfully."
+sudo service nginx restart
+
+curl -s http://localhost | grep -q "Hello World!"
+if [ $? -eq 0 ]; then
+    echo "Nginx is working correctly!"
+else
+    echo "Nginx configuration issue. Check your setup."
+fi
