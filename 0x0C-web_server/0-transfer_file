@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+# Transfers a file from the local machine to a remote server.
+# Accepts four arguments:
+# 1. The path to the file to be transferred.
+# 2. The IP or hostname of the remote server.
+# 3. The username to connect with on the remote server.
+# 4. The path to the SSH private key that scp uses.
+
+print_usage_and_exit() {
+    echo "Usage: $0 PATH_TO_FILE IP_OR_HOSTNAME USERNAME PATH_TO_SSH_KEY" >&2
+    exit 1
+}
+
+if [ "$#" -ne 4 ]; then
+    print_usage_and_exit
+fi
+
+file_path="$1"
+remote_host="$2"
+remote_user="$3"
+ssh_key_path="$4"
+
+if [ ! -f "$file_path" ]; then
+    echo "Error: File '$file_path' does not exist." >&2
+    exit 1
+fi
+
+if [ ! -f "$ssh_key_path" ]; then
+    echo "Error: SSH key file '$ssh_key_path' does not exist." >&2
+    exit 1
+fi
+
+scp -o StrictHostKeyChecking=no -i "$ssh_key_path" "$file_path" "$remote_user@$remote_host":~
+
+if [ $? -eq 0 ]; then
+    echo "File transfer successful."
+else
+    echo "Error: File transfer failed." >&2
+fi

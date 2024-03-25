@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# Script to install and configure Nginx on a remote server
+
+print_error_and_exit() {
+    echo "Error: $1" >&2
+    exit 1
+}
+
+if [ "$(id -u)" -ne 0 ]; then
+    print_error_and_exit "This script must be run as root."
+fi
+
+apt-get update || print_error_and_exit "Failed to update package lists."
+
+apt-get install -y nginx || print_error_and_exit "Failed to install Nginx."
+
+ufw_status=$(sudo ufw status | grep -o 'inactive' || true)
+if [ "$ufw_status" = "inactive" ]; then
+    print_error_and_exit "Uncomplicated Firewall (UFW) is inactive. Please enable it and try again."
+fi
+
+ufw allow 'Nginx HTTP' || print_error_and_exit "Failed to allow Nginx HTTP traffic through the firewall."
+
+echo 'Hello World!' > /var/www/html/index.nginx-debian.html || print_error_and_exit "Failed to create the index file."
+
+systemctl start nginx || print_error_and_exit "Failed to start the Nginx service."
+
+echo "Nginx has been installed and configured successfully."
