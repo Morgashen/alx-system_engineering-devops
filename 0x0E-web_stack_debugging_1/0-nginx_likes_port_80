@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Description: Configures the default Nginx site
+
+# Step 1: Remove any existing symbolic link in the sites-enabled directory
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Step 2: Create a symbolic link from sites-available to sites-enabled
+sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# Step 3: Verify the Nginx configuration
+sudo nginx -t
+
+# Step 4: Reload Nginx to apply the new configuration
+sudo systemctl reload nginx

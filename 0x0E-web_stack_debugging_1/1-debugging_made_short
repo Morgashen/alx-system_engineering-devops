@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+# Description: Debugging Nginx port configuration
+# Prerequisite: Nginx service should not be running
+
+# Step 1: Update the Nginx default site configuration to listen on port 80
+sudo sed -i 's/listen 8080;/listen 80;/g' /etc/nginx/sites-available/default
+
+# Step 2: Remove any existing symbolic link in the sites-enabled directory
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Step 3: Create a symbolic link from sites-available to sites-enabled
+sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# Step 4: Verify the Nginx configuration
+sudo nginx -t
+
+# Step 5: Start the Nginx service
+sudo systemctl start nginx
+
+# Step 6: Check the Nginx process status
+if pgrep -x nginx > /dev/null; then
+    echo "Nginx is running on port 80."
+else
+    echo "Nginx failed to start on port 80."
+fi
