@@ -1,45 +1,30 @@
 #!/usr/bin/python3
 """Function to query a list of all hot posts on a given Reddit subreddit."""
-
 import requests
 
-def recurse(subreddit, hot_list=None, after=None):
-    """
-    Returns a list containing the titles of all hot posts for a given subreddit.
-    If the subreddit is invalid or private, returns None.
-    """
-    if hot_list is None:
-        hot_list = []
 
-    url = f"https://www.reddit.com/r/{subreddit}/hot.json?limit=100"
-    if after:
-        url += f"&after={after}"
-
-    headers = {"User-Agent": "python:MyRedditApp:v1.0 (by /u/your_reddit_username)"}
-
-    try:
-        response = requests.get(url, headers=headers, allow_redirects=False)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
+def recurse(subreddit, hot_list=[], after="", count=0):
+    """Returns a list of titles of all hot posts on a given subreddit."""
+    url = "https://www.reddit.com/r/{}/hot/.json".format(subreddit)
+    headers = {
+        "User-Agent": "linux:0x16.api.advanced:v1.0.0 (by /u/bdov_)"
+    }
+    params = {
+        "after": after,
+        "count": count,
+        "limit": 100
+    }
+    response = requests.get(url, headers=headers, params=params,
+                            allow_redirects=False)
+    if response.status_code == 404:
         return None
 
-    if response.status_code == 200:
-        data = response.json()
-        posts = data["data"]["children"]
-        after = data["data"]["after"]
+    results = response.json().get("data")
+    after = results.get("after")
+    count += results.get("dist")
+    for c in results.get("children"):
+        hot_list.append(c.get("data").get("title"))
 
-        for post in posts:
-            title = post["data"]["title"]
-            hot_list.append(title)
-
-        if after:
-            hot_list = recurse(subreddit, hot_list, after)
-
-        return hot_list
-
-    elif response.status_code == 302:
-        return None
-    else:
-        print(f"Error: {response.status_code} - {response.text}")
-        return None
+    if after is not None:
+        return recurse(subreddit, hot_list, after, count)
+    return hot_list
