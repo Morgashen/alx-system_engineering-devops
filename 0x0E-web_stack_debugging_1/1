@@ -1,3 +1,0 @@
-ln: failed to create symbolic link '/etc/nginx/sites-enabled/default': No such file or directory
-sudo: nginx: command not found
-Failed to reload nginx.service: Unit nginx.service not found.
