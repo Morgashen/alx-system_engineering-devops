@@ -1,15 +1,46 @@
 #!/usr/bin/env bash
 
-# Description: Configures the default Nginx site
+# Update package list and install necessary tools
+apt-get update
+apt-get install -y nginx curl net-tools
 
-# Step 1: Remove any existing symbolic link in the sites-enabled directory
-sudo rm -f /etc/nginx/sites-enabled/default
+# Enable and start Nginx service
+systemctl enable nginx
+systemctl start nginx
 
-# Step 2: Create a symbolic link from sites-available to sites-enabled
-sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+# Check if Nginx is running
+if ! systemctl is-active --quiet nginx; then
+    echo "Nginx is not running. Exiting..."
+    exit 1
+fi
 
-# Step 3: Verify the Nginx configuration
-sudo nginx -t
+# Check Nginx configuration for listening on port 80
+NGINX_CONF="/etc/nginx/sites-available/default"
+if ! grep -q "listen 80;" $NGINX_CONF; then
+    echo "Configuring Nginx to listen on port 80..."
+    sed -i 's/listen 80 default_server;/listen 80;/g' $NGINX_CONF
+    sed -i 's/listen \[::\]:80 default_server;/listen \[::\]:80;/g' $NGINX_CONF
+    systemctl restart nginx
+fi
 
-# Step 4: Reload Nginx to apply the new configuration
-sudo systemctl reload nginx
+# Check firewall settings to allow port 80 (HTTP)
+if command -v ufw > /dev/null; then
+    ufw allow 80/tcp
+fi
+
+# Verify that Nginx is listening on port 80
+if ! netstat -tuln | grep ':80'; then
+    echo "Nginx is not listening on port 80. Exiting..."
+    exit 1
+fi
+
+# Test if Nginx is serving the default page on port 80
+if curl -s http://localhost | grep -q "Welcome to nginx!"; then
+    echo "Nginx is successfully serving on port 80."
+else
+    echo "Nginx is not serving the default page. Exiting..."
+    exit 1
+fi
+
+echo "Nginx is configured and running on port 80."
+
