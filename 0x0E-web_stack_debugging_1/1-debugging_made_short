@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-
-apt-get update -y && apt-get install -y nginx
-sed -i 's/listen 80 default_server;/listen 80;/g; s/listen \[::\]:80 default_server;/listen \[::\]:80;/g' /etc/nginx/sites-available/default
-ufw allow 80/tcp
+# debugging nginx (service (init) must say that nginx is not running)
+sed -i 's/8080/80/g' /etc/nginx/sites-enabled/default
 service nginx restart
+pkill -o nginx
