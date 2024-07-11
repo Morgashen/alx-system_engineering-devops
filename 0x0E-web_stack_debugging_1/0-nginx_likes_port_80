@@ -1,36 +1,5 @@
 #!/usr/bin/env bash
+# change nginx server to listen on port 80 and restart
 
-# Update package list and install Nginx if not installed
-sudo apt-get update
-sudo apt-get install -y nginx
-
-# Configure Nginx to listen on port 80
-sudo bash -c 'cat > /etc/nginx/sites-available/default <<EOL
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    root /var/www/html;
-    index index.html index.htm index.nginx-debian.html;
-
-    server_name _;
-
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-}
-EOL'
-
-# Allow port 80 through the firewall
-sudo ufw allow 80/tcp
-
-# Reload Nginx configuration and restart the service
-sudo systemctl reload nginx
-sudo systemctl restart nginx
-
-# Enable Nginx to start on boot
-sudo systemctl enable nginx
-
-# Print the status of Nginx to verify it is running
-sudo systemctl status nginx
-
+sed -i "s/8080/80/g" /etc/nginx/sites-enabled/default
+service nginx restart
