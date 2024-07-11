@@ -1,12 +1,36 @@
 #!/usr/bin/env bash
 
-# debugging nginx port 80
+# Update package list and install Nginx if not installed
+sudo apt-get update
+sudo apt-get install -y nginx
 
-# How I solved it: erase  the existing ../sites-enabled/default and replace it with a copy of
+# Configure Nginx to listen on port 80
+sudo bash -c 'cat > /etc/nginx/sites-available/default <<EOL
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
 
-# ../sites-available/default. You do that by creating a symbolic link. 
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
 
-# NB: The flag -s creates a symbolic link, -f deletes the existing file and replaces it
+    server_name _;
 
-sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-sudo service nginx restart
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+EOL'
+
+# Allow port 80 through the firewall
+sudo ufw allow 80/tcp
+
+# Reload Nginx configuration and restart the service
+sudo systemctl reload nginx
+sudo systemctl restart nginx
+
+# Enable Nginx to start on boot
+sudo systemctl enable nginx
+
+# Print the status of Nginx to verify it is running
+sudo systemctl status nginx
+
