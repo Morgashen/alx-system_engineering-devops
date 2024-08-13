@@ -21,7 +21,7 @@ def number_of_subscribers(subreddit):
     if not subreddit or not isinstance(subreddit, str):
         return 0
 
-    user_agent = {'User-Agent': 'api_advanced-project'}
+    user_agent = {'User-Agent': 'api_advanced_project'}
     url = 'https://www.reddit.com/r/{}/about.json'.format(subreddit)
 
     try:

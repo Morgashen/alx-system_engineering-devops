@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 """
 Prints the titles of the first 10 hot posts listed for a given subreddit.
 """
@@ -14,12 +13,15 @@ def top_ten(subreddit):
 
     Args:
         subreddit (str): The name of the subreddit.
+    
+    Returns:
+        None: Prints the titles of the hot posts or "None" if the subreddit is invalid.
     """
     if not subreddit or not isinstance(subreddit, str):
         print("None")
         return
 
-    user_agent = {'User-Agent': 'api_advanced-project'}
+    user_agent = {'User-Agent': 'api_advanced_project'}
     params = {'limit': 10}
     url = 'https://www.reddit.com/r/{}/hot/.json'.format(subreddit)
 
