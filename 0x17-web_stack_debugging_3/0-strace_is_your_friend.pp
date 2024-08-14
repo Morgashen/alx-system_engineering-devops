@@ -1,14 +1,6 @@
-# This Puppet manifest fixes the Apache 500 error caused by incorrect file permissions
-file { '/var/www/html':
-  ensure => directory,
-  owner  => 'www-data',
-  group  => 'www-data',
-  mode   => '0755',
-  recurse => true,
-}
+# Fix Apache 500 error by correcting misspelled filename
 
-service { 'apache2':
-  ensure => running,
-  enable => true,
-  subscribe => File['/var/www/html'],
+exec { 'fix-wordpress':
+  command => 'sed -i s/phpp/php/g /var/www/html/wp-settings.php',
+  path    => '/usr/local/bin/:/bin/'
 }
