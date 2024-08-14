@@ -1,43 +1,49 @@
 #!/usr/bin/python3
 """
-Prints the titles of the first 10 hot posts listed for a given subreddit.
+Module for querying the Reddit API and printing titles of hot posts.
 """
-
 import requests
 
 
 def top_ten(subreddit):
     """
-    Queries the Reddit API and prints the titles of the first
-    10 hot posts listed for a given subreddit.
+    Queries the Reddit API and prints the titles of the first 10 hot posts
+    listed for a given subreddit.
 
     Args:
-        subreddit (str): The name of the subreddit.
-    
-    Returns:
-        None: Prints the titles of the hot posts or "None" if the subreddit is invalid.
-    """
-    if not subreddit or not isinstance(subreddit, str):
-        print("None")
-        return
+    subreddit (str): The name of the subreddit to query.
 
-    user_agent = {'User-Agent': 'api_advanced_project'}
-    params = {'limit': 10}
-    url = 'https://www.reddit.com/r/{}/hot/.json'.format(subreddit)
+    Returns:
+    None
+    """
+    # Set a custom User-Agent to avoid Too Many Requests errors
+    headers = {'User-Agent': 'MyRedditBot/1.0'}
+
+    # Construct the URL for the subreddit's hot posts
+    url = f"https://www.reddit.com/r/{subreddit}/hot.json?limit=10"
 
     try:
-        response = requests.get(url, headers=user_agent, params=params, allow_redirects=False)
-        response.raise_for_status()
+        # Send a GET request to the Reddit API
+        response = requests.get(url, headers=headers, allow_redirects=False)
 
-        results = response.json()
-        posts = results.get('data', {}).get('children', [])
-
-        if not posts:
-            print("None")
-            return
-
-        for post in posts:
-            print(post.get('data', {}).get('title', 'None'))
-
+        # Check if the request was successful and the subreddit exists
+        if response.status_code == 200:
+            data = response.json()
+            posts = data['data']['children']
+            
+            for post in posts:
+                print(post['data']['title'])
+        else:
+            # If the subreddit is invalid or there's an error, print None
+            print(None)
     except requests.RequestException:
-        print("None")
+        # Handle any request exceptions (e.g., network errors)
+        print(None)
+
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) < 2:
+        print("Please pass an argument for the subreddit to search.")
+    else:
+        top_ten(sys.argv[1])
