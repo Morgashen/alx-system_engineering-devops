@@ -1,4 +1,33 @@
 #!/usr/bin/env bash
-# Gracefully reloads Gunicorn.
+# This script gracefully reloads Gunicorn
 
-ps aux | grep gunicorn | awk '{ print $2 }' | xargs kill -HUP
+# Find the master Gunicorn process
+GUNICORN_MASTER=$(pgrep -f "gunicorn: master")
+
+if [ -z "$GUNICORN_MASTER" ]; then
+    echo "Gunicorn master process not found. Is Gunicorn running?"
+    exit 1
+fi
+
+echo "Sending graceful reload signal to Gunicorn master process (PID: $GUNICORN_MASTER)"
+
+# Send SIGHUP to the Gunicorn master process
+kill -HUP "$GUNICORN_MASTER"
+
+echo "Graceful reload signal sent. Gunicorn workers will be restarted one by one."#!/usr/bin/env bash
+# This script gracefully reloads Gunicorn
+
+# Find the master Gunicorn process
+GUNICORN_MASTER=$(pgrep -f "gunicorn: master")
+
+if [ -z "$GUNICORN_MASTER" ]; then
+    echo "Gunicorn master process not found. Is Gunicorn running?"
+    exit 1
+fi
+
+echo "Sending graceful reload signal to Gunicorn master process (PID: $GUNICORN_MASTER)"
+
+# Send SIGHUP to the Gunicorn master process
+kill -HUP "$GUNICORN_MASTER"
+
+echo "Graceful reload signal sent. Gunicorn workers will be restarted one by one."

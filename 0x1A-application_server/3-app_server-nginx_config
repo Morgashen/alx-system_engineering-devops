@@ -1,14 +1,18 @@
-# Configures Nginx to serve the route /airbnb-onepage/ from AirBnB_clone_v2.
-
-cat > 2-app_server-nginx_config << EOL
+cat > 3-app_server-nginx_config << EOL
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
 
-    server_name 54.237.83.138;
+    server_name _;
 
     location /airbnb-onepage/ {
         proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location ~ ^/airbnb-dynamic/number_odd_or_even/(\d+)$ {
+        proxy_pass http://127.0.0.1:5001/number_odd_or_even/$1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
